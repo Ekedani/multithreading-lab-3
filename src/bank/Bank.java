@@ -28,7 +28,12 @@ class Bank {
         for (int i = 0; i < accounts.length; i++) {
             sum += accounts[i];
         }
-        System.out.println("Transactions:" + ntransacts+ " Sum: " + sum);
+        System.out.println("Transactions:" + ntransacts + " Sum: " + sum);
+    }
+
+    // Implemented non-existing method size
+    public int size() {
+        return accounts.length;
     }
 }
 
