@@ -41,7 +41,7 @@ class Bank {
         synchronized (lockedObject) {
             while (accounts[from] < amount) {
                 try {
-                    wait();
+                    lockedObject.wait();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -49,7 +49,7 @@ class Bank {
             accounts[from] -= amount;
             accounts[to] += amount;
             ntransacts++;
-            notifyAll();
+            lockedObject.notifyAll();
             if (ntransacts % NTEST == 0) {
                 test();
             }
