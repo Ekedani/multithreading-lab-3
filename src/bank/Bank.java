@@ -1,32 +1,86 @@
 package bank;
 
+import java.util.Arrays;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 class Bank {
     public static final int NTEST = 10000;
     private final int[] accounts;
     private long ntransacts = 0;
 
+    final Object lockedObject = new Object();
+    final Lock reentrantLock = new ReentrantLock();
+    final Condition notEmpty = reentrantLock.newCondition();
+
+    // Replaced for with Array.fill, deleted ntransacts = 0
     public Bank(int n, int initialBalance) {
         accounts = new int[n];
-        int i;
-        for (i = 0; i < accounts.length; i++) {
-            accounts[i] = initialBalance;
-        }
-        ntransacts = 0;
+        Arrays.fill(accounts, initialBalance);
     }
 
-    public void transfer(int from, int to, int amount) {
+    public synchronized void transferSynchronized(int from, int to, int amount) {
+        while (accounts[from] < amount) {
+            try {
+                wait();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
         accounts[from] -= amount;
         accounts[to] += amount;
         ntransacts++;
+        notifyAll();
         if (ntransacts % NTEST == 0) {
             test();
         }
     }
 
+    public void transferSynchronizedBlock(int from, int to, int amount) {
+        synchronized (lockedObject) {
+            while (accounts[from] < amount) {
+                try {
+                    wait();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            accounts[from] -= amount;
+            accounts[to] += amount;
+            ntransacts++;
+            notifyAll();
+            if (ntransacts % NTEST == 0) {
+                test();
+            }
+        }
+    }
+
+    public void transferLocked(int from, int to, int amount) {
+        reentrantLock.lock();
+        try {
+            while (accounts[from] < amount) {
+                notEmpty.await();
+            }
+            accounts[from] -= amount;
+            accounts[to] += amount;
+            ntransacts++;
+            notEmpty.signalAll();
+            if (ntransacts % NTEST == 0) {
+                test();
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            reentrantLock.unlock();
+        }
+    }
+
     public void test() {
         int sum = 0;
-        for (int i = 0; i < accounts.length; i++) {
-            sum += accounts[i];
+        // Changed for loop
+        for (int account : accounts) {
+            sum += account;
         }
         System.out.println("Transactions:" + ntransacts + " Sum: " + sum);
     }
