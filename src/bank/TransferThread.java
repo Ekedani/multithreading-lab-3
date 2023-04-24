@@ -17,7 +17,7 @@ class TransferThread extends Thread {
             for (int i = 0; i < REPS; i++) {
                 int toAccount = (int) (bank.size() * Math.random());
                 int amount = (int) (maxAmount * Math.random() / REPS);
-                bank.transferSynchronized(fromAccount, toAccount, amount);
+                bank.transferSynchronizedBlock(fromAccount, toAccount, amount);
             }
         }
     }

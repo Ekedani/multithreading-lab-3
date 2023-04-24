@@ -1,6 +1,6 @@
 package bank;
 
-public class BankTest {
+public class BankExample {
     public static final int NACCOUNTS = 10;
     public static final int INITIAL_BALANCE = 10000;
 

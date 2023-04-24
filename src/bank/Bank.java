@@ -11,8 +11,8 @@ class Bank {
     private long ntransacts = 0;
 
     final Object lockedObject = new Object();
-    final Lock reentrantLock = new ReentrantLock();
-    final Condition notEmpty = reentrantLock.newCondition();
+    final Lock lock = new ReentrantLock();
+    final Condition notEmpty = lock.newCondition();
 
     // Replaced for with Array.fill, deleted ntransacts = 0
     public Bank(int n, int initialBalance) {
@@ -57,7 +57,7 @@ class Bank {
     }
 
     public void transferLocked(int from, int to, int amount) {
-        reentrantLock.lock();
+        lock.lock();
         try {
             while (accounts[from] < amount) {
                 notEmpty.await();
@@ -72,7 +72,16 @@ class Bank {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         } finally {
-            reentrantLock.unlock();
+            lock.unlock();
+        }
+    }
+
+    public void transferOriginal(int from, int to, int amount) {
+        accounts[from] -= amount;
+        accounts[to] += amount;
+        ntransacts++;
+        if (ntransacts % NTEST == 0) {
+            test();
         }
     }
 
@@ -83,6 +92,13 @@ class Bank {
             sum += account;
         }
         System.out.println("Transactions:" + ntransacts + " Sum: " + sum);
+    }
+
+    public void testAccounts() {
+        for (int account : accounts) {
+            System.out.print(account + " ");
+        }
+        System.out.print('\n');
     }
 
     // Implemented non-existing method size
