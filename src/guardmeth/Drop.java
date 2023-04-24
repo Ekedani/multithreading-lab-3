@@ -1,10 +1,10 @@
 package guardmeth;
 
 public class Drop {
-    private String message;
+    private int integerMessage;
     private boolean empty = true;
 
-    public synchronized String take() {
+    public synchronized int take() {
         while (empty) {
             try {
                 wait();
@@ -12,17 +12,17 @@ public class Drop {
         }
         empty = true;
         notifyAll();
-        return message;
+        return integerMessage;
     }
 
-    public synchronized void put(String message) {
+    public synchronized void put(int message) {
         while (!empty) {
             try {
                 wait();
             } catch (InterruptedException ignored) {}
         }
         empty = false;
-        this.message = message;
+        this.integerMessage = message;
         notifyAll();
     }
 }
